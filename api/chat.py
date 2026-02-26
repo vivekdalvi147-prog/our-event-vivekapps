@@ -7,7 +7,7 @@ import requests
 API_KEY = os.getenv("VIVEK_API", "your_custom_key_here")
 
 def bol_ai_chat(user_message: str):
-    url = "https://bol-ai.vercel.app/api/chat"
+    url = "https://bol-ai.vercel.app/api/chat2"
     headers = {
         "Content-Type": "application/json",
         "x-my-client-key": API_KEY
