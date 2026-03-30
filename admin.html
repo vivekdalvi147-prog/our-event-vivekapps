@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Panel | Premium Event Booking</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CSS Variables aani Theming (Neon & Glassmorphism) */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --dark-bg: #050508;
+            --glass-bg: rgba(20, 20, 25, 0.85);
+            --glass-border: rgba(0, 243, 255, 0.25);
+            --success-color: #4ade80;
+            --error-color: #f87171;
+            --warning-color: #fbbf24;
+            --nav-height: 70px;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at top right, rgba(188, 19, 254, 0.08), transparent 40%),
+                radial-gradient(circle at bottom left, rgba(0, 243, 255, 0.08), transparent 40%);
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Khali dakhvlela progress bar */
+        #top-progress-bar {
+            position: fixed; top: 0; left: 0; height: 4px;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            width: 0%; z-index: 9999999; transition: width 0.3s ease, opacity 0.3s ease;
+            box-shadow: 0 0 15px var(--neon-blue); opacity: 0;
+        }
+
+        /* Glass Panels sathi styling */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .neon-text {
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        /* Buttons sathi styling */
+        .btn-neon {
+            background: rgba(0, 243, 255, 0.05);
+            color: white;
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.15);
+            border-radius: 8px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+        .btn-neon:hover {
+            box-shadow: 0 0 20px var(--neon-blue), inset 0 0 10px rgba(0, 243, 255, 0.3);
+            transform: translateY(-2px);
+            background: rgba(0, 243, 255, 0.1);
+        }
+
+        .btn-danger {
+            border-color: var(--error-color);
+            box-shadow: 0 0 10px rgba(248, 113, 113, 0.15);
+            color: var(--error-color);
+        }
+        .btn-danger:hover {
+            box-shadow: 0 0 20px var(--error-color), inset 0 0 10px rgba(248, 113, 113, 0.3);
+            background: rgba(248, 113, 113, 0.1);
+            color: white;
+        }
+
+        .btn-warning {
+            border-color: var(--warning-color);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.15);
+            color: var(--warning-color);
+        }
+        .btn-warning:hover {
+            box-shadow: 0 0 20px var(--warning-color), inset 0 0 10px rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.1);
+            color: white;
+        }
+
+        /* Tables aani Inputs */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { color: var(--neon-blue); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; cursor: pointer; transition: color 0.2s; }
+        th:hover { color: white; }
+        tr:hover { background-color: rgba(0, 243, 255, 0.04); }
+
+        input, textarea, select {
+            width: 100%;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 12px rgba(0, 243, 255, 0.3);
+        }
+        select option { background: var(--dark-bg); color: white; }
+
+        /* Loader aani Scrollbar */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-bg); z-index: 99999;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; transition: opacity 0.5s;
+        }
+        .spinner {
+            width: 60px; height: 60px;
+            border: 5px solid rgba(0, 243, 255, 0.1);
+            border-top-color: var(--neon-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--dark-bg); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(var(--neon-blue), var(--neon-purple)); border-radius: 10px; }
+
+        .hidden { display: none !important; }
+
+        /* Toast Notifications */
+        #toast-container { position: fixed; top: 25px; right: 25px; z-index: 100000; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+        .custom-toast {
+            min-width: 280px; max-width: 380px;
+            background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(15px);
+            border-left: 4px solid var(--neon-blue); color: white;
+            padding: 16px 20px; border-radius: 10px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            display: flex; align-items: center; gap: 15px;
+            transform: translateX(120%); opacity: 0;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); pointer-events: auto;
+        }
+        .custom-toast.show { transform: translateX(0); opacity: 1; }
+        .toast-icon { font-size: 1.2rem; }
+        .toast-success { border-left-color: var(--success-color); }
+        .toast-success .toast-icon { color: var(--success-color); }
+        .toast-error { border-left-color: var(--error-color); }
+        .toast-error .toast-icon { color: var(--error-color); }
+        .toast-warning { border-left-color: var(--warning-color); }
+        .toast-warning .toast-icon { color: var(--warning-color); }
+
+        /* Bottom Navigation Bar (Nichee lagavlela menu) */
+        #bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: rgba(5, 5, 8, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 50;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: gray;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            height: 100%;
+            padding: 5px 0;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: white;
+            background: rgba(0, 243, 255, 0.05);
+        }
+
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-item.active i {
+            transform: translateY(-2px) scale(1.1);
+            color: var(--neon-blue);
+        }
+
+        .nav-item span {
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Main Content Area (Navin page sathi animation) */
+        #main-content {
+            padding-bottom: calc(var(--nav-height) + 30px);
+            min-height: 100vh;
+            width: 100%;
+            animation: fadeInPage 0.5s ease forwards;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Utility Classes for Advanced Features */
+        .search-bar-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+        }
+        .search-bar-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: gray;
+        }
+        .search-bar-container input {
+            padding-left: 40px;
+            border-radius: 20px;
+        }
+        
+        .hidden-row {
+            opacity: 0.4;
+            background: rgba(255,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Global Top Progress Bar -->
+    <div id="top-progress-bar"></div>
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <h2 class="mt-4 neon-text font-black tracking-widest text-xl uppercase">Loading Admin...</h2>
+    </div>
+
+    <!-- Custom Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Auth Modal (Fakt Email/Password sathi) -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] flex justify-center items-center p-4">
+        <div class="glass-panel w-full max-w-md p-8 relative border-t-4 border-t-[#00f3ff]">
+            <div class="text-center mb-6">
+                <div class="inline-block p-4 bg-[#00f3ff]/10 rounded-full mb-4 border border-[#00f3ff]/30 shadow-[0_0_20px_rgba(0,243,255,0.2)]">
+                    <i class="fa-solid fa-user-shield text-4xl text-[#00f3ff]"></i>
+                </div>
+                <h2 class="text-3xl font-black neon-text uppercase tracking-widest">Root Access</h2>
+                <p class="text-xs text-gray-400 mt-2 font-mono tracking-widest">Authorized Personnel Only</p>
+            </div>
+            
+            <div class="space-y-5 mb-8">
+                <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="email" id="auth-email" placeholder="Admin Email" class="pl-12 py-3">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="password" id="auth-pass" placeholder="Secure Password" class="pl-12 py-3">
+                </div>
+            </div>
+            
+            <button onclick="handleLogin()" class="btn-neon w-full py-4 text-lg tracking-widest shadow-lg"><i class="fa-solid fa-right-to-bracket mr-2"></i> Authenticate</button>
+            
+            <!-- Google Login is hidden from UI as requested, but logic remains in JS -->
+            <button onclick="handleGoogleLogin()" class="hidden w-full bg-white text-black font-black uppercase tracking-wider rounded-xl p-3 items-center justify-center gap-3 hover:bg-gray-200 transition shadow-xl text-sm mt-4">
+                <i class="fa-brands fa-google text-red-500 text-lg"></i> Continue with Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Admin Layout -->
+    <div id="admin-layout" class="hidden flex-col min-h-screen relative">
+        
+        <!-- Top Header (Admin Info & Logout) -->
+        <div class="w-full glass-panel border-x-0 border-t-0 rounded-none p-4 flex justify-between items-center sticky top-0 z-40 bg-[rgba(5,5,8,0.95)]">
+            <h1 class="text-xl md:text-2xl font-black tracking-widest neon-text">
+                <i class="fa-solid fa-user-shield mr-2"></i>ADMIN
+            </h1>
+            <div class="flex items-center gap-4">
+                <p id="admin-email-display" class="text-[10px] md:text-xs text-[#00f3ff] font-mono tracking-widest truncate uppercase hidden sm:block"></p>
+                <button onclick="handleLogout()" class="btn-neon btn-danger !px-3 !py-2 !text-xs"><i class="fa-solid fa-power-off"></i> <span class="hidden sm:inline ml-1">Logout</span></button>
+            </div>
+        </div>
+
+        <!-- Content Area (Navin page sathi) -->
+        <div class="flex-1 p-4 md:p-8 lg:p-10 w-full max-w-7xl mx-auto" id="main-content">
+            <!-- Dynamic Content goes here -->
+        </div>
+
+        <!-- Bottom Navigation (Nichee lagavlela menu) -->
+        <div id="bottom-nav">
+            <div class="nav-item active" onclick="loadView('dashboard', this)">
+                <i class="fa-solid fa-chart-pie text-[#00f3ff]"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="loadView('events', this)">
+                <i class="fa-solid fa-calendar-days text-[#bc13fe]"></i>
+                <span>Events</span>
+            </div>
+            <div class="nav-item" onclick="loadView('bookings', this)">
+                <i class="fa-solid fa-ticket text-green-400"></i>
+                <span>Bookings</span>
+            </div>
+            <div class="nav-item" onclick="loadView('users', this)">
+                <i class="fa-solid fa-users text-yellow-400"></i>
+                <span>Users</span>
+            </div>
+            <div class="nav-item" onclick="loadView('tickets', this)">
+                <i class="fa-solid fa-headset text-orange-400"></i>
+                <span>Support</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal (Add / Edit) -->
+    <div id="event-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden flex justify-center items-center p-4">
+        <div class="glass-panel w-full max-w-3xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto custom-scroll border-t-4 border-t-[#00f3ff]">
+            <button onclick="closeEventModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl transition"><i class="fa-solid fa-times"></i></button>
+            <h2 id="modal-title" class="text-2xl md:text-3xl font-black mb-6 neon-text uppercase tracking-widest"><i class="fa-solid fa-plus"></i> Add New Event</h2>
+            
+            <input type="hidden" id="ev-id">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="md:col-span-2">
+                    <label class="block mb-1 text-xs font-black uppercase tracking-widest text-gray-400">Event Title</label>
+                    <input type="text" id="ev-title" placeholder="e.g. Tomorrowland 2026">
+                </div>
+                <div>
+                    <label class="block mb-1 text-xs font-black uppercase tracking-widest text-gray-400">Title Color (Hex) - Optional</label>
+                    <input type="text" id="ev-color" placeholder="#ffffff (Defaults to Neon)">
+                </div>
+                <div>
+                    <label class="block mb-1 text-xs font-black uppercase tracking-widest text-gray-400">Theme Music URL - Optional</label>
+                    <input type="text" id="ev-music" placeholder="https://... (Plays once)">
+                </div>
+            </div>
+            
+            <label class="block mb-1 text-xs font-black uppercase tracking-widest text-gray-400">Description (HTML Supported)</label>
+            <textarea id="ev-desc" rows="4" class="mb-4 font-mono text-sm" placeholder="Event details..."></textarea>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block mb-1 text-xs font-black uppercase tracking-widest text-gray-400">Regular Price (₹)</label>
+                    <input type="number" id="ev-price" placeholder="e.g. 5000">
+                </div>
+                <div>
+                    <label class="block mb-1 text-xs font-black uppercase tracking-widest text-gray-400">Discount Price (₹)</label>
+                    <input type="number" id="ev-disc" placeholder="e.g. 3999">
+                </div>
+            </div>
+
+            <label class="block mb-1 text-xs font-black uppercase tracking-widest text-gray-400">Gallery Image URLs (Comma Separated)</label>
+            <textarea id="ev-imgs" rows="3" class="mb-6 font-mono text-sm" placeholder="https://img1.jpg, https://img2.jpg..."></textarea>
+            
+            <button onclick="saveEvent()" class="btn-neon w-full py-4 text-lg tracking-widest"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Execute Injection</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+    <script>
+        /* Firebase chi mahiti aani setup */
+        const firebaseConfig = {
+            apiKey: "AIzaSyAbWud5zRj5Df5Ur55iTwuAUdcHSCKBU0U",
+            authDomain: "our-event-vivekapps.firebaseapp.com",
+            projectId: "our-event-vivekapps",
+            storageBucket: "our-event-vivekapps.firebasestorage.app",
+            messagingSenderId: "15973302901",
+            appId: "1:15973302901:web:78d2c33e83f3161c47ae3c"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        let showHiddenBookings = false; // Hidden bookings toggle state
+
+        /* Progress Bar aani Toasts sathi Utilities */
+        let progressInterval;
+        function startProgress() {
+            const pb = document.getElementById('top-progress-bar');
+            pb.style.opacity = '1'; pb.style.width = '0%';
+            let width = 0; clearInterval(progressInterval);
+            progressInterval = setInterval(() => {
+                if (width >= 90) clearInterval(progressInterval);
+                else { width += Math.random() * 15; pb.style.width = width + '%'; }
+            }, 150);
+        }
+
+        function stopProgress() {
+            clearInterval(progressInterval);
+            const pb = document.getElementById('top-progress-bar');
+            pb.style.width = '100%';
+            setTimeout(() => { pb.style.opacity = '0'; setTimeout(() => pb.style.width = '0%', 300); }, 400);
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let iconClass = 'fa-circle-info';
+            if(type === 'success') iconClass = 'fa-circle-check';
+            if(type === 'error') iconClass = 'fa-circle-xmark';
+            if(type === 'warning') iconClass = 'fa-triangle-exclamation';
+
+            toast.className = `custom-toast toast-${type}`;
+            toast.innerHTML = `<i class="fa-solid ${iconClass} toast-icon"></i><div class="flex-1 text-xs font-bold tracking-wider leading-relaxed">${message}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+        }
+
+        /* CSV Export Utility (Data download karnyasathi) */
+        function exportTableToCSV(filename, tableId) {
+            const table = document.querySelector(`#${tableId} table`);
+            if(!table) return showToast("Table not found for export.", "error");
+            
+            let csv =[];
+            const rows = table.querySelectorAll("tr");
+            
+            for (let i = 0; i < rows.length; i++) {
+                let row = [], cols = rows[i].querySelectorAll("td, th");
+                for (let j = 0; j < cols.length; j++) {
+                    // Clean text for CSV
+                    let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").replace(/"/g, '""');
+                    row.push('"' + data + '"');
+                }
+                csv.push(row.join(","));
+            }
+
+            const csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+            const downloadLink = document.createElement("a");
+            downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            showToast("Data Exported Successfully.", "success");
+        }
+
+        /* Table Sorting Utility */
+        function sortTable(tableId, colIndex, isNumeric = false) {
+            const table = document.querySelector(`#${tableId} table`);
+            const tbody = table.querySelector("tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            
+            let ascending = table.getAttribute("data-sort-dir") === "asc";
+            table.setAttribute("data-sort-dir", ascending ? "desc" : "asc");
+
+            rows.sort((a, b) => {
+                let valA = a.querySelectorAll("td")[colIndex]?.innerText.trim() || "";
+                let valB = b.querySelectorAll("td")[colIndex]?.innerText.trim() || "";
+                
+                if(isNumeric) {
+                    valA = parseFloat(valA.replace(/[^0-9.-]+/g,"")) || 0;
+                    valB = parseFloat(valB.replace(/[^0-9.-]+/g,"")) || 0;
+                    return ascending ? valA - valB : valB - valA;
+                } else {
+                    return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+            });
+
+            tbody.innerHTML = "";
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // Loader hide karnyasathi
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+            }, 800);
+        };
+
+        // Auth State Listener
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            if(user) {
+                document.getElementById('auth-modal').classList.add('hidden');
+                document.getElementById('admin-layout').classList.remove('hidden');
+                document.getElementById('admin-layout').classList.add('flex');
+                document.getElementById('admin-email-display').innerText = user.email;
+                loadView('dashboard', document.querySelector('.nav-item.active'));
+            } else {
+                document.getElementById('auth-modal').classList.remove('hidden');
+                document.getElementById('admin-layout').classList.add('hidden');
+                document.getElementById('admin-layout').classList.remove('flex');
+            }
+        });
+
+        /* Login aani authentication logic (Fakt Email/Pass) */
+        async function handleLogin() {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            if(!email || !pass) return showToast("Credentials required!", "warning");
+            startProgress();
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                showToast("Root Access Granted.", "success");
+            } catch(e) { showToast("Auth Failed: " + e.message, "error"); }
+            finally { stopProgress(); }
+        }
+
+        /* Google login function thevla ahe pan UI madhun hide kela ahe (Requirement pramane) */
+        async function handleGoogleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            startProgress();
+            try {
+                await auth.signInWithPopup(provider);
+                showToast("OAuth Access Granted.", "success");
+            } catch(e) { showToast("OAuth Failed: " + e.message, "error"); }
+            finally { stopProgress(); }
+        }
+
+        function handleLogout() { 
+            auth.signOut(); 
+            showToast("Connection Severed.", "info");
+        }
+
+        /* Navin page var janari routing system (Full page transition) */
+        function loadView(view, navElement) {
+            startProgress();
+            
+            // Update active state in bottom nav
+            if(navElement) {
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                navElement.classList.add('active');
+            }
+
+            const content = document.getElementById('main-content');
+            
+            // Reset animation to simulate new page load
+            content.style.animation = 'none';
+            content.offsetHeight; /* trigger reflow */
+            content.style.animation = null; 
+            
+            // Scroll to top for new page feel
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            content.innerHTML = `<div class="flex justify-center items-center h-[60vh]"><div class="spinner"></div></div>`;
+            
+            setTimeout(() => {
+                if(view === 'dashboard') renderDashboard(content);
+                else if(view === 'events') renderEvents(content);
+                else if(view === 'bookings') renderBookings(content);
+                else if(view === 'users') renderUsers(content);
+                else if(view === 'tickets') renderTickets(content);
+                stopProgress();
+            }, 400);
+        }
+
+        /* 1. Dashboard chi mahiti dakhvnyasathi */
+        async function renderDashboard(container) {
+            container.innerHTML = `
+            <div class="mb-8 border-b border-gray-800 pb-4">
+                <h2 class="text-3xl md:text-4xl font-black neon-text uppercase tracking-widest">System Overview</h2>
+                <p class="text-gray-400 text-xs font-mono mt-2 uppercase tracking-widest">Real-time Database Metrics</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="dash-stats">
+                <div class="glass-panel p-6 text-center border-t-4 border-t-[#00f3ff] hover:-translate-y-2 transition"><h3 class="text-4xl md:text-5xl font-black text-[#00f3ff] mb-2" id="stat-ev"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></h3><p class="text-gray-400 text-xs uppercase tracking-widest font-bold">Total Events</p></div>
+                <div class="glass-panel p-6 text-center border-t-4 border-t-[#bc13fe] hover:-translate-y-2 transition"><h3 class="text-4xl md:text-5xl font-black text-[#bc13fe] mb-2" id="stat-bk"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></h3><p class="text-gray-400 text-xs uppercase tracking-widest font-bold">Total Bookings</p></div>
+                <div class="glass-panel p-6 text-center border-t-4 border-t-green-400 hover:-translate-y-2 transition"><h3 class="text-4xl md:text-5xl font-black text-green-400 mb-2" id="stat-us"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></h3><p class="text-gray-400 text-xs uppercase tracking-widest font-bold">Registered Users</p></div>
+                <div class="glass-panel p-6 text-center border-t-4 border-t-orange-400 hover:-translate-y-2 transition"><h3 class="text-4xl md:text-5xl font-black text-orange-400 mb-2" id="stat-tk"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></h3><p class="text-gray-400 text-xs uppercase tracking-widest font-bold">Support Tickets</p></div>
+            </div>
+            
+            <div class="mt-10 glass-panel p-6 border-t-4 border-t-gray-600">
+                <h3 class="text-xl font-bold text-white mb-4 uppercase tracking-widest"><i class="fa-solid fa-server mr-2 text-gray-400"></i> System Status</h3>
+                <div class="space-y-3 font-mono text-sm text-gray-400">
+                    <p class="flex justify-between border-b border-gray-800 pb-2"><span>Database Connection:</span> <span class="text-green-400">Stable</span></p>
+                    <p class="flex justify-between border-b border-gray-800 pb-2"><span>Authentication API:</span> <span class="text-green-400">Active</span></p>
+                    <p class="flex justify-between border-b border-gray-800 pb-2"><span>Storage Bucket:</span> <span class="text-green-400">Online</span></p>
+                    <p class="flex justify-between pb-2"><span>Last Sync:</span> <span class="text-[#00f3ff]">${new Date().toLocaleString()}</span></p>
+                </div>
+            </div>`;
+
+            try {
+                const evSnap = await db.collection('events').get();
+                document.getElementById('stat-ev').innerText = evSnap.size;
+
+                const bkSnap = await db.collection('bookings').get();
+                document.getElementById('stat-bk').innerText = bkSnap.size;
+                
+                const uniqueUsers = new Set();
+                bkSnap.forEach(doc => uniqueUsers.add(doc.data().userId));
+                document.getElementById('stat-us').innerText = uniqueUsers.size;
+
+                const tkSnap = await db.collection('support_tickets').get();
+                document.getElementById('stat-tk').innerText = tkSnap.size;
+            } catch(e) {
+                console.error(e);
+                showToast("Permission Denied: Check Firebase Rules.", "error");
+            }
+        }
+
+        /* 2. Events manage karnyasathi (Add, Edit, Delete) */
+        async function renderEvents(container) {
+            let html = `
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-8 gap-4 border-b border-gray-800 pb-4">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-black neon-text uppercase tracking-widest">Manage Events</h2>
+                        <p class="text-gray-400 text-xs font-mono mt-1 uppercase tracking-widest">Inject & Modify Protocols</p>
+                    </div>
+                    <button onclick="openEventModal()" class="btn-neon !bg-[#00f3ff]/10"><i class="fa-solid fa-plus"></i> Add Event</button>
+                </div>
+                <div class="glass-panel overflow-x-auto custom-scroll" id="events-table-container">
+                    <table class="w-full text-sm whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th>Cover</th>
+                                <th onclick="sortTable('events-table-container', 1)">Title <i class="fa-solid fa-sort ml-1 text-gray-500"></i></th>
+                                <th onclick="sortTable('events-table-container', 2, true)">Price <i class="fa-solid fa-sort ml-1 text-gray-500"></i></th>
+                                <th onclick="sortTable('events-table-container', 3, true)">Discount <i class="fa-solid fa-sort ml-1 text-gray-500"></i></th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="events-tbody"><tr><td colspan="5" class="text-center py-8"><i class="fa-solid fa-spinner fa-spin text-2xl text-[#00f3ff]"></i></td></tr></tbody>
+                    </table>
+                </div>
+            `;
+            container.innerHTML = html;
+
+            try {
+                const snap = await db.collection('events').get();
+                let rows = '';
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const img = (data.images && data.images.length > 0) ? data.images[0] : 'https://via.placeholder.com/50';
+                    const safeData = encodeURIComponent(JSON.stringify({id: doc.id, ...data}));
+                    
+                    const colorIndicator = data.titleColor ? `<span class="inline-block w-3 h-3 rounded-full ml-2" style="background-color:${data.titleColor}"></span>` : '';
+                    const musicIndicator = data.musicUrl ? `<i class="fa-solid fa-music text-purple-400 ml-2" title="Theme Music Added"></i>` : '';
+
+                    rows += `
+                    <tr>
+                        <td><img src="${img}" class="w-14 h-14 object-cover rounded-lg border border-gray-700"></td>
+                        <td class="font-bold text-base">${data.title} ${colorIndicator} ${musicIndicator}</td>
+                        <td class="line-through text-gray-500 font-mono">₹${data.price}</td>
+                        <td class="text-[#00f3ff] font-black text-lg drop-shadow-md">₹${data.discountPrice}</td>
+                        <td>
+                            <button onclick="editEvent('${safeData}')" class="btn-neon !px-3 !py-2 !text-xs mr-2"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button onclick="deleteEvent('${doc.id}')" class="btn-neon btn-danger !px-3 !py-2 !text-xs"><i class="fa-solid fa-trash"></i> Drop</button>
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById('events-tbody').innerHTML = rows || `<tr><td colspan="5" class="text-center text-gray-400 py-8 font-mono uppercase tracking-widest text-xs">No events found in database.</td></tr>`;
+            } catch(e) { showToast("Database Read Error", "error"); }
+        }
+
+        function openEventModal() {
+            document.getElementById('ev-id').value = '';
+            document.getElementById('ev-title').value = '';
+            document.getElementById('ev-color').value = '';
+            document.getElementById('ev-music').value = '';
+            document.getElementById('ev-desc').value = '';
+            document.getElementById('ev-price').value = '';
+            document.getElementById('ev-disc').value = '';
+            document.getElementById('ev-imgs').value = '';
+            document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-plus"></i> Add New Event`;
+            document.getElementById('event-modal').classList.remove('hidden');
+        }
+
+        function closeEventModal() { document.getElementById('event-modal').classList.add('hidden'); }
+
+        function editEvent(encodedData) {
+            const data = JSON.parse(decodeURIComponent(encodedData));
+            document.getElementById('ev-id').value = data.id;
+            document.getElementById('ev-title').value = data.title || '';
+            document.getElementById('ev-color').value = data.titleColor || '';
+            document.getElementById('ev-music').value = data.musicUrl || '';
+            document.getElementById('ev-desc').value = data.description || '';
+            document.getElementById('ev-price').value = data.price || '';
+            document.getElementById('ev-disc').value = data.discountPrice || '';
+            document.getElementById('ev-imgs').value = (data.images ||[]).join(', ');
+            document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-pen"></i> Edit Event`;
+            document.getElementById('event-modal').classList.remove('hidden');
+        }
+
+        async function saveEvent() {
+            const id = document.getElementById('ev-id').value;
+            const title = document.getElementById('ev-title').value.trim();
+            const color = document.getElementById('ev-color').value.trim();
+            const music = document.getElementById('ev-music').value.trim();
+            const desc = document.getElementById('ev-desc').value.trim();
+            const price = document.getElementById('ev-price').value;
+            const disc = document.getElementById('ev-disc').value;
+            const imgs = document.getElementById('ev-imgs').value.split(',').map(s => s.trim()).filter(s => s);
+
+            if(!title || !price || !disc) return showToast("Core parameters (Title, Price, Discount) are mandatory.", "warning");
+
+            const eventData = {
+                title, description: desc, price: Number(price), discountPrice: Number(disc), 
+                images: imgs, titleColor: color, musicUrl: music,
+                updatedAt: new Date().toISOString(), adminId: currentUser.uid
+            };
+
+            startProgress();
+            try {
+                if(id) {
+                    await db.collection('events').doc(id).update(eventData);
+                    showToast("Event Protocol Updated.", "success");
+                } else {
+                    eventData.createdAt = new Date().toISOString();
+                    await db.collection('events').add(eventData);
+                    showToast("New Event Injected.", "success");
+                }
+                closeEventModal();
+                loadView('events', document.querySelector('.nav-item:nth-child(2)'));
+            } catch(e) { showToast("Injection Error: " + e.message, "error"); }
+            finally { stopProgress(); }
+        }
+
+        async function deleteEvent(id) {
+            if(!confirm("Irreversible Action: Delete this event?")) return;
+            startProgress();
+            try {
+                await db.collection('events').doc(id).delete();
+                showToast("Event Dropped.", "success");
+                loadView('events', document.querySelector('.nav-item:nth-child(2)'));
+            } catch(e) { showToast("Deletion Error", "error"); }
+            finally { stopProgress(); }
+        }
+
+        /* 3. Bookings aani codes manage karnyasathi (Hide, Delete add kela ahe) */
+        async function renderBookings(container) {
+            let html = `
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-8 gap-4 border-b border-gray-800 pb-4">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-black neon-text uppercase tracking-widest">Bookings & Codes</h2>
+                        <p class="text-gray-400 text-xs font-mono mt-1 uppercase tracking-widest">Assign Codes, Hide or Delete Records</p>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="toggleHiddenBookings()" class="btn-neon btn-warning !px-3 !py-2 !text-xs">
+                            <i class="fa-solid ${showHiddenBookings ? 'fa-eye-slash' : 'fa-eye'}"></i> ${showHiddenBookings ? 'Hide Hidden' : 'Show Hidden'}
+                        </button>
+                        <button onclick="exportTableToCSV('bookings_data.csv', 'bookings-table-container')" class="btn-neon !px-3 !py-2 !text-xs">
+                            <i class="fa-solid fa-download"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="search-bar-container mb-4">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="booking-search" placeholder="Search by Email or Event..." onkeyup="filterBookingsTable()">
+                </div>
+
+                <div class="glass-panel overflow-x-auto custom-scroll" id="bookings-table-container">
+                    <table class="w-full text-sm whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('bookings-table-container', 0)">Date <i class="fa-solid fa-sort ml-1 text-gray-500"></i></th>
+                                <th onclick="sortTable('bookings-table-container', 1)">Operative <i class="fa-solid fa-sort ml-1 text-gray-500"></i></th>
+                                <th onclick="sortTable('bookings-table-container', 2)">Event <i class="fa-solid fa-sort ml-1 text-gray-500"></i></th>
+                                <th>Status & Unique Code</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookings-tbody"><tr><td colspan="5" class="text-center py-8"><i class="fa-solid fa-spinner fa-spin text-2xl text-[#00f3ff]"></i></td></tr></tbody>
+                    </table>
+                </div>
+            `;
+            container.innerHTML = html;
+            fetchAndRenderBookingsData();
+        }
+
+        async function fetchAndRenderBookingsData() {
+            try {
+                const snap = await db.collection('bookings').orderBy('date', 'desc').get();
+                let rows = '';
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // Hide logic
+                    if(data.isHidden && !showHiddenBookings) return;
+
+                    const d = new Date(data.date).toLocaleString();
+                    let statusColor = data.status === 'Approved' ? 'text-green-400' : (data.status === 'Cancelled' ? 'text-red-500' : 'text-orange-400');
+                    let rowClass = data.isHidden ? 'hidden-row' : '';
+
+                    rows += `
+                    <tr class="border-b border-gray-800 ${rowClass}">
+                        <td class="text-gray-400 text-xs font-mono">${d}</td>
+                        <td>
+                            <p class="font-bold text-white">${data.userName}</p>
+                            <p class="text-[10px] text-gray-500 font-mono booking-email">${data.userEmail}</p>
+                        </td>
+                        <td>
+                            <p class="font-black text-[#00f3ff] uppercase tracking-wider booking-event">${data.eventName}</p>
+                            <p class="text-xs text-gray-400 font-mono">₹${data.price}</p>
+                        </td>
+                        <td class="min-w-[250px]">
+                            <div class="flex flex-col gap-2">
+                                <select id="status-${doc.id}" class="!p-2 !text-xs font-bold ${statusColor} bg-black/80">
+                                    <option value="Pending Verification" ${data.status === 'Pending Verification' ? 'selected' : ''} class="text-orange-400">Pending Verification</option>
+                                    <option value="Approved" ${data.status === 'Approved' ? 'selected' : ''} class="text-green-400">Approved</option>
+                                    <option value="Cancelled" ${data.status === 'Cancelled' ? 'selected' : ''} class="text-red-500">Cancelled</option>
+                                </select>
+                                <input type="text" id="code-${doc.id}" value="${data.ticketCode || ''}" placeholder="Assign Unique Coupon/Hex Code" class="!p-2 !text-xs font-mono text-[#00f3ff] placeholder-gray-600">
+                            </div>
+                        </td>
+                        <td class="align-middle">
+                            <div class="flex flex-col gap-2">
+                                <button onclick="saveBookingStatus('${doc.id}')" class="btn-neon !px-3 !py-2 !text-xs w-full"><i class="fa-solid fa-floppy-disk mr-1"></i> Commit</button>
+                                <div class="flex gap-2">
+                                    <button onclick="hideBooking('${doc.id}', ${data.isHidden})" class="btn-neon btn-warning !px-2 !py-2 !text-xs flex-1" title="${data.isHidden ? 'Unhide' : 'Hide'}">
+                                        <i class="fa-solid ${data.isHidden ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                                    </button>
+                                    <button onclick="deleteBooking('${doc.id}')" class="btn-neon btn-danger !px-2 !py-2 !text-xs flex-1" title="Delete Permanently">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById('bookings-tbody').innerHTML = rows || `<tr><td colspan="5" class="text-center text-gray-400 py-8 font-mono uppercase tracking-widest text-xs">No transaction records found.</td></tr>`;
+            } catch(e) { showToast("Database Read Error", "error"); }
+        }
+
+        function filterBookingsTable() {
+            let input = document.getElementById("booking-search").value.toUpperCase();
+            let table = document.getElementById("bookings-tbody");
+            let tr = table.getElementsByTagName("tr");
+            for (let i = 0; i < tr.length; i++) {
+                let emailTd = tr[i].querySelector(".booking-email");
+                let eventTd = tr[i].querySelector(".booking-event");
+                if (emailTd || eventTd) {
+                    let txtValue = (emailTd.textContent || emailTd.innerText) + " " + (eventTd.textContent || eventTd.innerText);
+                    if (txtValue.toUpperCase().indexOf(input) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }       
+            }
+        }
+
+        function toggleHiddenBookings() {
+            showHiddenBookings = !showHiddenBookings;
+            fetchAndRenderBookingsData();
+        }
+
+        async function saveBookingStatus(id) {
+            const newStatus = document.getElementById(`status-${id}`).value;
+            const newCode = document.getElementById(`code-${id}`).value.trim();
+
+            if(newStatus === 'Approved' && !newCode) {
+                return showToast("A unique Coupon/Hex code is strictly required to Approve a ticket.", "warning");
+            }
+
+            startProgress();
+            try {
+                if(newCode) {
+                    const snap = await db.collection('bookings').where('ticketCode', '==', newCode).get();
+                    let isDuplicate = false;
+                    snap.forEach(doc => { if(doc.id !== id) isDuplicate = true; });
+                    
+                    if(isDuplicate) {
+                        stopProgress();
+                        return showToast("CRITICAL: This Coupon Code is already assigned to another operative!", "error");
+                    }
+                }
+
+                await db.collection('bookings').doc(id).update({ status: newStatus, ticketCode: newCode });
+                showToast("Transaction status and code committed successfully.", "success");
+                
+                const selectEl = document.getElementById(`status-${id}`);
+                selectEl.className = `!p-2 !text-xs font-bold bg-black/80 w-full ${newStatus === 'Approved' ? 'text-green-400' : (newStatus === 'Cancelled' ? 'text-red-500' : 'text-orange-400')}`;
+                
+            } catch(e) { showToast("Update Error: " + e.message, "error"); }
+            finally { stopProgress(); }
+        }
+
+        /* Booking hide karnyasathi function */
+        async function hideBooking(id, currentHiddenState) {
+            startProgress();
+            try {
+                await db.collection('bookings').doc(id).update({ isHidden: !currentHiddenState });
+                showToast(currentHiddenState ? "Booking Unhidden." : "Booking Hidden from main view.", "success");
+                fetchAndRenderBookingsData();
+            } catch(e) { showToast("Hide Error: " + e.message, "error"); }
+            finally { stopProgress(); }
+        }
+
+        /* Booking delete karnyasathi function */
+        async function deleteBooking(id) {
+            if(!confirm("WARNING: Are you sure you want to permanently delete this booking? This action cannot be undone.")) return;
+            startProgress();
+            try {
+                await db.collection('bookings').doc(id).delete();
+                showToast("Booking Permanently Deleted.", "success");
+                fetchAndRenderBookingsData();
+            } catch(e) { showToast("Delete Error: " + e.message, "error"); }
+            finally { stopProgress(); }
+        }
+
+        /* 4. Users chi mahiti (Directory) */
+        async function renderUsers(container) {
+            let html = `
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-8 gap-4 border-b border-gray-800 pb-4">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-black neon-text uppercase tracking-widest">Users Directory</h2>
+                        <p class="text-gray-400 text-xs font-mono mt-1 uppercase tracking-widest">Global Operative Database</p>
+                    </div>
+                    <button onclick="exportTableToCSV('users_data.csv', 'users-table-container')" class="btn-neon !px-3 !py-2 !text-xs">
+                        <i class="fa-solid fa-download"></i> Export CSV
+                    </button>
+                </div>
+                <div class="glass-panel overflow-x-auto custom-scroll" id="users-table-container">
+                    <table class="w-full text-sm whitespace-nowrap">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('users-table-container', 0)">Identity (Email & UID) <i class="fa-solid fa-sort ml-1 text-gray-500"></i></th>
+                                <th>Contact (Phone)</th>
+                                <th>Geographic Coordinates (Address)</th>
+                                <th onclick="sortTable('users-table-container', 3)">Last Active <i class="fa-solid fa-sort ml-1 text-gray-500"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody"><tr><td colspan="4" class="text-center py-8"><i class="fa-solid fa-spinner fa-spin text-2xl text-[#00f3ff]"></i></td></tr></tbody>
+                    </table>
+                </div>
+            `;
+            container.innerHTML = html;
+
+            try {
+                const bkSnap = await db.collection('bookings').orderBy('date', 'desc').get();
+                const userMap = new Map();
+                
+                bkSnap.forEach(doc => {
+                    const d = doc.data();
+                    if(!userMap.has(d.userId)) {
+                        userMap.set(d.userId, { email: d.userEmail, name: d.userName, lastActive: d.date, phone: 'N/A', addr: 'N/A', pin: '' });
+                    }
+                });
+
+                const userSnap = await db.collection('users').get();
+                userSnap.forEach(doc => {
+                    const uid = doc.id;
+                    const d = doc.data();
+                    if(userMap.has(uid)) {
+                        const existing = userMap.get(uid);
+                        existing.phone = d.phone || 'N/A';
+                        existing.addr = d.addr || 'N/A';
+                        existing.pin = d.pin || '';
+                        if(d.updated && new Date(d.updated) > new Date(existing.lastActive)) existing.lastActive = d.updated;
+                        userMap.set(uid, existing);
+                    } else {
+                        userMap.set(uid, { email: 'Unknown (No Bookings)', name: 'Unknown', lastActive: d.updated || 'Unknown', phone: d.phone || 'N/A', addr: d.addr || 'N/A', pin: d.pin || '' });
+                    }
+                });
+
+                let rows = '';
+                userMap.forEach((data, uid) => {
+                    const dateStr = data.lastActive !== 'Unknown' ? new Date(data.lastActive).toLocaleString() : 'Unknown';
+                    rows += `
+                    <tr class="border-b border-gray-800">
+                        <td>
+                            <p class="font-bold text-white">${data.email}</p>
+                            <p class="text-[9px] text-gray-500 font-mono tracking-widest mt-1">UID: ${uid}</p>
+                        </td>
+                        <td class="text-[#00f3ff] font-mono">${data.phone}</td>
+                        <td>
+                            <p class="text-gray-300 text-xs truncate max-w-[250px]" title="${data.addr}">${data.addr}</p>
+                            <p class="text-[10px] text-gray-500 font-mono mt-1">PIN: ${data.pin || 'N/A'}</p>
+                        </td>
+                        <td class="text-gray-400 text-xs font-mono">${dateStr}</td>
+                    </tr>`;
+                });
+
+                document.getElementById('users-tbody').innerHTML = rows || `<tr><td colspan="4" class="text-center text-gray-400 py-8 font-mono uppercase tracking-widest text-xs">No operatives found in database.</td></tr>`;
+            } catch(e) { showToast("Database Read Error", "error"); }
+        }
+
+        /* 5. Support tickets sathi */
+        async function renderTickets(container) {
+            let html = `
+                <div class="mb-6 md:mb-8 border-b border-gray-800 pb-4">
+                    <h2 class="text-2xl md:text-3xl font-black neon-text uppercase tracking-widest">Support Tickets</h2>
+                    <p class="text-gray-400 text-xs font-mono mt-1 uppercase tracking-widest">Resolve Operative Queries</p>
+                </div>
+                <div class="glass-panel overflow-x-auto custom-scroll">
+                    <table class="w-full text-sm whitespace-nowrap">
+                        <thead><tr><th>Ticket ID & Date</th><th>Operative Email</th><th>Issue Log</th><th>Status & Action</th></tr></thead>
+                        <tbody id="tickets-tbody"><tr><td colspan="4" class="text-center py-8"><i class="fa-solid fa-spinner fa-spin text-2xl text-[#00f3ff]"></i></td></tr></tbody>
+                    </table>
+                </div>
+            `;
+            container.innerHTML = html;
+
+            try {
+                const snap = await db.collection('support_tickets').orderBy('timestamp', 'desc').get();
+                let rows = '';
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const d = data.timestamp ? new Date(data.timestamp).toLocaleString() : 'Unknown';
+                    
+                    let statusColor = data.status === 'Resolved' ? 'text-green-400' : (data.status === 'In Progress' ? 'text-orange-400' : 'text-red-500');
+
+                    rows += `
+                    <tr class="border-b border-gray-800">
+                        <td>
+                            <p class="text-[#00f3ff] font-black tracking-widest">${data.ticketId}</p>
+                            <p class="text-[10px] text-gray-500 font-mono mt-1">${d}</p>
+                        </td>
+                        <td class="font-bold text-white">${data.user || data.email}</td>
+                        <td class="text-gray-300 text-xs whitespace-normal min-w-[200px] max-w-[300px] leading-relaxed">${data.issue}</td>
+                        <td class="min-w-[200px]">
+                            <div class="flex items-center gap-2">
+                                <select onchange="updateTicketStatus('${doc.id}', this.value, this)" class="!p-2 !text-xs font-bold ${statusColor} bg-black/80 flex-1">
+                                    <option value="Open" ${data.status === 'Open' ? 'selected' : ''} class="text-red-500">Open</option>
+                                    <option value="In Progress" ${data.status === 'In Progress' ? 'selected' : ''} class="text-orange-400">In Progress</option>
+                                    <option value="Resolved" ${data.status === 'Resolved' ? 'selected' : ''} class="text-green-400">Resolved</option>
+                                </select>
+                                <button onclick="deleteTicket('${doc.id}')" class="btn-neon btn-danger !px-3 !py-2" title="Delete/Hide Ticket"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById('tickets-tbody').innerHTML = rows || `<tr><td colspan="4" class="text-center text-gray-400 py-8 font-mono uppercase tracking-widest text-xs">No active support tickets.</td></tr>`;
+            } catch(e) { showToast("Database Read Error", "error"); }
+        }
+
+        async function updateTicketStatus(id, newStatus, selectElement) {
+            startProgress();
+            try {
+                await db.collection('support_tickets').doc(id).update({ status: newStatus });
+                showToast("Ticket status updated.", "success");
+                selectElement.className = `!p-2 !text-xs font-bold bg-black/80 flex-1 ${newStatus === 'Resolved' ? 'text-green-400' : (newStatus === 'In Progress' ? 'text-orange-400' : 'text-red-500')}`;
+            } catch(e) { showToast("Update Error", "error"); }
+            finally { stopProgress(); }
+        }
+
+        async function deleteTicket(id) {
+            if(!confirm("Are you sure you want to permanently delete/hide this support ticket?")) return;
+            startProgress();
+            try {
+                await db.collection('support_tickets').doc(id).delete();
+                showToast("Ticket deleted successfully.", "success");
+                loadView('tickets', document.querySelector('.nav-item:nth-child(5)'));
+            } catch(e) { showToast("Deletion Error", "error"); }
+            finally { stopProgress(); }
+        }
+
+    </script>
+</body>
+</html>
